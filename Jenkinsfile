@@ -2,18 +2,6 @@ pipeline {
     agent any
 
     stages {
-        stage('Git scm update') {
-            steps {
-                git url: 'https://github.com/gowns764/cicd-test.git', branch: 'main'
-            }
-        }
-        stage('Define tag') {
-            steps {
-                script {
-                    if
-                }
-            }
-        }
         stage('Docker build and push') {
             steps {
                 sh '''
