@@ -1,21 +1,40 @@
 pipeline {
     agent any
 
+    environment {
+        appName = "cicd-test"
+        url = "https://hub.docker.com/repository/docker/gowns764/"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-jenkins')
+        dockerImage = ''
+    }
+
     stages {
-        stage('Docker build and push') {
+        stage('Git scm update') {
             steps {
-                sh '''
-                docker build -t 192.168.56.1:8443/cicd-test .
-                docker push 192.168.56.1:8443/cicd-test
-                '''
+                checkout scm
+            }
+        }
+        stage('Docker build image') {
+            steps {
+                script {
+                    dockerImage = docker.build appName
+                }
+            }
+        }
+        stage('Docker push image') {
+            steps {
+                script {
+                    docker.withRegistry(url, DOCKERHUB_CREDENTIALS) {
+                        dockerImage.push('latest')
+                    }
+                }
             }
         }
         stage('deploly kubernetes') {
             steps {
-                sh '''
-                kubectl create deploy nginx --image 192.168.56.1:8443/cicd-test
-                kubectl expose deploy nginx --type NodePort --port 8080 --target-port 80 --name nginx
-                '''
+                script {
+                    sh "kubectl apply -f " + appName + "--image " + url + appName
+                }
             }
         }
     }
