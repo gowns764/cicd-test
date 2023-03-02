@@ -1,41 +1,27 @@
 pipeline {
-    agent any
-
-    environment {
-        appName = "cicd-test"
-        url = "https://hub.docker.com/repository/docker/gowns764/"
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-jenkins')
-        dockerImage = ''
+  agent any
+  stages {
+    stage('git scm update') {
+      steps {
+        git url: 'https://github.com/IaC-Source/echo-ip.git', branch: 'main'
+      }
     }
-
-    stages {
-        stage('Git scm update') {
-            steps {
-                checkout scm
-            }
-        }
-        stage('Docker build image') {
-            steps {
-                script {
-                    dockerImage = docker.build appName
-                }
-            }
-        }
-        stage('Docker push image') {
-            steps {
-                script {
-                    docker.withRegistry(url, DOCKERHUB_CREDENTIALS) {
-                        dockerImage.push('latest')
-                    }
-                }
-            }
-        }
-        stage('deploly kubernetes') {
-            steps {
-                script {
-                    sh "kubectl apply -f " + appName + "--image " + url + appName
-                }
-            }
-        }
+    stage('docker build and push') {
+      steps {
+        sh '''
+        docker build -t 192.168.56.1:8443/echo-ip .
+        docker push 192.168.56.1:8443/echo-ip
+        '''
+      }
     }
+    stage('deploy kubernetes') {
+      steps {
+        sh '''
+        kubectl create deployment pl-bulk-prod --image=192.168.56.1:8443/echo-ip
+        kubectl expose deployment pl-bulk-prod --type=NodePort --port=8080 \
+                                               --target-port=80 --name=pl-bulk-prod-svc
+        '''
+      }
+    }
+  }
 }

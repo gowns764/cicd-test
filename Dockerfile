@@ -1,6 +1,8 @@
-FROM nginx:latest
+FROM nginx:stable
 
-LABEL maintainer "haejun.ko <gowns0719@gmail.com>"
+LABEL Name=echo-ip Version=0.0.5
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY cert.crt /etc/nginx/conf.d/cert.crt
+COPY cert.key /etc/nginx/conf.d/cert.key
 
-RUN apt-get update && apt-get install -y curl
+CMD ["nginx", "-g", "daemon off;"]
