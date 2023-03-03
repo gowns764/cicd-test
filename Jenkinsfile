@@ -1,8 +1,4 @@
 pipeline {
-  environment { 
-    repository = "gowns764/cicd-test"
-    dockerImage = '' 
-  }
   agent any
 
   stages {
@@ -11,10 +7,10 @@ pipeline {
         git url: 'https://github.com/gowns764/cicd-test.git', branch: 'main'
       }
     }
-    stage('docker build') {
+    stage('kubectl') {
       steps {
         script {
-          dockerImage = docker.build repository
+          sh "kubectl get node"
         }
       }
     }
