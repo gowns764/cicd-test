@@ -14,7 +14,7 @@ pipeline {
     stage('docker build') {
       steps {
         script {
-          sh "sudo docker ps"
+          dockerImage = docker.build repository
         }
       }
     }
